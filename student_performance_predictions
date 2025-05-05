@@ -1,0 +1,65 @@
+# Step 1: Import required libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
+from sklearn.preprocessing import LabelEncoder
+
+# Step 2: Load the dataset
+data = pd.read_csv("StudentsPerformance.csv")
+
+# Step 3: Display initial data
+print("First 5 rows of data:")
+print(data.head())
+
+# Step 4: Encode categorical variables
+label_encoder = LabelEncoder()
+categorical_cols = ['gender', 'race/ethnicity', 'parental level of education', 
+                    'lunch', 'test preparation course']
+
+for col in categorical_cols:
+    data[col] = label_encoder.fit_transform(data[col])
+
+# Step 5: Display dataset information after encoding
+print("\nDataset info after encoding:")
+print(data.info())
+
+# Step 7: Select features and target
+X = data.drop(['math score'], axis=1)
+y = data['math score']
+
+# Step 8: Split the data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 9: Train the model
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Step 10: Predict and evaluate
+y_pred = model.predict(X_test)
+accuracy = r2_score(y_test, y_pred) * 100
+print(f"\nModel R² Accuracy: {accuracy:.2f}%")
+
+# Step 11: Predict math score from user input
+print("\n--- Predict Math Score ---")
+user_input = {
+    'gender': input("Enter gender (male/female): "),
+    'race/ethnicity': input("Enter race/ethnicity group (e.g., group A, B...): "),
+    'parental level of education': input("Enter parental education: "),
+    'lunch': input("Enter lunch type (standard/free/reduced): "),
+    'test preparation course': input("Completed test preparation? (none/completed): "),
+    'reading score': float(input("Enter reading score (0-100): ")),
+    'writing score': float(input("Enter writing score (0-100): "))
+}
+
+# Encode user input
+for col in categorical_cols:
+    user_input[col] = label_encoder.fit(data[col]).transform([user_input[col]])[0]
+
+user_df = pd.DataFrame([user_input])
+predicted_score = model.predict(user_df)[0]
+
+print(f"\nPredicted Math Score: {predicted_score:.2f}")
